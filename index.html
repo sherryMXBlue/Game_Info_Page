@@ -210,19 +210,190 @@
             font-weight: 600;
         }
 
-        /* FILTERS CONTAINER */
-        #filters-container {
-            flex: 1;
-            overflow-y: auto;
-            padding: 0 20px 20px;
-            max-height: 0;
-            opacity: 0;
-            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        /* APPLIED FILTERS DISPLAY */
+        .applied-filters {
+            padding: 0 20px 16px;
+            display: none;
         }
 
-        #filters-container.expanded {
-            max-height: 1000px;
-            opacity: 1;
+        .applied-filters.show {
+            display: block;
+        }
+
+        .applied-filter-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .applied-filter-label {
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .applied-filter-value {
+            color: var(--accent-primary);
+            font-weight: 500;
+            flex: 1;
+            text-align: right;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .applied-filter-clear {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 16px;
+            line-height: 1;
+            transition: all 0.2s;
+        }
+
+        .applied-filter-clear:hover {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+        }
+
+        /* FILTER SIDE PANEL */
+        #filter-panel-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            z-index: 999;
+            animation: fadeIn 0.3s ease;
+        }
+
+        #filter-panel-overlay.show {
+            display: block;
+        }
+
+        #filter-panel {
+            position: fixed;
+            top: 0;
+            right: -500px;
+            width: 480px;
+            height: 100vh;
+            background: var(--bg-secondary);
+            border-left: 1px solid var(--border);
+            box-shadow: -10px 0 50px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            overflow-y: auto;
+            transition: right 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #filter-panel.show {
+            right: 0;
+        }
+
+        .filter-panel-header {
+            position: sticky;
+            top: 0;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 24px;
+            z-index: 10;
+            backdrop-filter: blur(10px);
+        }
+
+        .filter-panel-title {
+            font-size: 24px;
+            font-weight: 700;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+
+        .filter-panel-subtitle {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .filter-panel-close {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: all 0.2s;
+        }
+
+        .filter-panel-close:hover {
+            background: var(--bg-card);
+            border-color: var(--accent-primary);
+        }
+
+        .filter-panel-content {
+            padding: 24px;
+        }
+
+        .filter-panel-actions {
+            position: sticky;
+            bottom: 0;
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border);
+            padding: 20px 24px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .filter-panel-btn {
+            flex: 1;
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .filter-panel-btn-primary {
+            background: var(--accent-gradient);
+            color: white;
+        }
+
+        .filter-panel-btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .filter-panel-btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .filter-panel-btn-secondary:hover {
+            background: var(--bg-card);
         }
         
         .filter-group { 
@@ -1097,58 +1268,11 @@
                     <span class="filter-badge" id="active-filters">0</span>
                 </button>
             </div>
-            
-            <!-- Filters Container -->
-            <div id="filters-container">
-                <!-- Platform Checkboxes -->
-                <div class="filter-group">
-                    <div class="filter-header">
-                        <span class="filter-label">🎮 Platforms</span>
-                        <button class="filter-action" onclick="clearPlatforms()">Clear</button>
-                    </div>
-                    <input type="text" id="platform-search" placeholder="Search platforms...">
-                    <div id="platform-list" class="checkbox-container"></div>
-                </div>
 
-                <!-- Source Filter -->
-                <div class="filter-group">
-                    <div class="filter-header">
-                        <span class="filter-label">📊 Data Sources</span>
-                        <button class="filter-action" onclick="clearSources()">Clear</button>
-                    </div>
-                    <div id="source-list" class="checkbox-container"></div>
-                </div>
-
-                <!-- Minimum Sources Filter -->
-                <div class="filter-group">
-                    <div class="filter-header">
-                        <span class="filter-label">🔢 Min. Source Count</span>
-                    </div>
-                    <input type="number" id="min-sources" min="1" value="1" placeholder="1">
-                    <div class="filter-hint">
-                        Show games found in at least this many files
-                    </div>
-                </div>
-
-                <!-- Date Filter -->
-                <div class="filter-group">
-                    <div class="filter-header">
-                        <span class="filter-label">📅 Release Date</span>
-                        <button class="filter-action" onclick="clearDates()">Reset</button>
-                    </div>
-                    <div class="date-row">
-                        <div class="date-col">
-                            <label>From</label>
-                            <input type="date" id="filter-date-start">
-                        </div>
-                        <div class="date-col">
-                            <label>To</label>
-                            <input type="date" id="filter-date-end">
-                        </div>
-                    </div>
-                </div>
+            <!-- Applied Filters Display -->
+            <div class="applied-filters" id="applied-filters-display">
+                <!-- Dynamically populated -->
             </div>
-
             <div id="results-count">
                 <div class="results-info">
                     <span>📋</span>
@@ -1178,6 +1302,71 @@
         </div>
     </div>
 
+    <!-- Filter Side Panel -->
+    <div id="filter-panel-overlay"></div>
+    <div id="filter-panel">
+        <div class="filter-panel-header">
+            <button class="filter-panel-close" onclick="closeFilterPanel()">×</button>
+            <h2 class="filter-panel-title">Advanced Filters</h2>
+            <p class="filter-panel-subtitle">Refine your game search</p>
+        </div>
+        
+        <div class="filter-panel-content">
+            <!-- Platform Checkboxes -->
+            <div class="filter-group">
+                <div class="filter-header">
+                    <span class="filter-label">🎮 Platforms</span>
+                    <button class="filter-action" onclick="clearPlatforms()">Clear</button>
+                </div>
+                <input type="text" id="platform-search" placeholder="Search platforms...">
+                <div id="platform-list" class="checkbox-container"></div>
+            </div>
+
+            <!-- Source Filter -->
+            <div class="filter-group">
+                <div class="filter-header">
+                    <span class="filter-label">📊 Data Sources</span>
+                    <button class="filter-action" onclick="clearSources()">Clear</button>
+                </div>
+                <div id="source-list" class="checkbox-container"></div>
+            </div>
+
+            <!-- Minimum Sources Filter -->
+            <div class="filter-group">
+                <div class="filter-header">
+                    <span class="filter-label">🔢 Min. Source Count</span>
+                </div>
+                <input type="number" id="min-sources" min="1" value="1" placeholder="1">
+                <div class="filter-hint">
+                    Show games found in at least this many files
+                </div>
+            </div>
+
+            <!-- Date Filter -->
+            <div class="filter-group">
+                <div class="filter-header">
+                    <span class="filter-label">📅 Release Date</span>
+                    <button class="filter-action" onclick="clearDates()">Reset</button>
+                </div>
+                <div class="date-row">
+                    <div class="date-col">
+                        <label>From</label>
+                        <input type="date" id="filter-date-start">
+                    </div>
+                    <div class="date-col">
+                        <label>To</label>
+                        <input type="date" id="filter-date-end">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="filter-panel-actions">
+            <button class="filter-panel-btn filter-panel-btn-secondary" onclick="clearAllFilters()">Clear All</button>
+            <button class="filter-panel-btn filter-panel-btn-primary" onclick="closeFilterPanel()">Apply Filters</button>
+        </div>
+    </div>
+
     <!-- Export Modal -->
     <div id="export-modal" class="modal-overlay">
         <div class="modal">
@@ -1203,6 +1392,16 @@
                         <div class="export-option-title">JSON (Full Raw Data)</div>
                         <div class="export-option-desc">
                             Export complete data including all source files and raw information for advanced use.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="export-option" onclick="exportAsCombinedJSON()">
+                    <div class="export-option-icon">🔀</div>
+                    <div class="export-option-content">
+                        <div class="export-option-title">JSON (Combined Only)</div>
+                        <div class="export-option-desc">
+                            Export only the merged/combined JSON data for each game (one entry per game, no duplicate sources).
                         </div>
                     </div>
                 </div>
@@ -1242,17 +1441,121 @@
         const panelsContainer = document.getElementById('panels-container');
 
         const filterToggle = document.getElementById('filter-toggle');
-        const filtersContainer = document.getElementById('filters-container');
+        const filterPanel = document.getElementById('filter-panel');
+        const filterPanelOverlay = document.getElementById('filter-panel-overlay');
+        const appliedFiltersDisplay = document.getElementById('applied-filters-display');
         const activeFiltersCount = document.getElementById('active-filters');
 
         // Track currently filtered games
         let currentFilteredGames = [];
 
-        // Filter Toggle Logic
+        // Filter Panel Toggle Logic
         filterToggle.addEventListener('click', () => {
-            filtersContainer.classList.toggle('expanded');
-            filterToggle.classList.toggle('active');
+            filterPanel.classList.add('show');
+            filterPanelOverlay.classList.add('show');
+            document.body.style.overflow = 'hidden'; // Prevent background scroll
         });
+
+        function closeFilterPanel() {
+            filterPanel.classList.remove('show');
+            filterPanelOverlay.classList.remove('show');
+            document.body.style.overflow = '';
+            updateAppliedFiltersDisplay();
+        }
+
+        // Close on overlay click
+        filterPanelOverlay.addEventListener('click', closeFilterPanel);
+
+        // Close on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && filterPanel.classList.contains('show')) {
+                closeFilterPanel();
+            }
+        });
+
+        function updateAppliedFiltersDisplay() {
+            const selectedPlatforms = Array.from(document.querySelectorAll('.platform-chk:checked')).map(cb => cb.value);
+            const selectedSources = Array.from(document.querySelectorAll('.source-chk:checked')).map(cb => cb.value);
+            const minSourceCount = parseInt(minSourcesInput.value) || 1;
+            const dateStart = filterDateStart.value;
+            const dateEnd = filterDateEnd.value;
+
+            let html = '';
+
+            // Platforms
+            if (selectedPlatforms.length > 0) {
+                const displayText = selectedPlatforms.length > 3 
+                    ? `${selectedPlatforms.slice(0, 3).join(', ')} +${selectedPlatforms.length - 3} more`
+                    : selectedPlatforms.join(', ');
+                html += `
+                    <div class="applied-filter-item">
+                        <span class="applied-filter-label">Platforms</span>
+                        <span class="applied-filter-value" title="${selectedPlatforms.join(', ')}">${displayText}</span>
+                        <button class="applied-filter-clear" onclick="clearPlatforms()" title="Clear platforms">×</button>
+                    </div>
+                `;
+            }
+
+            // Sources
+            if (selectedSources.length > 0) {
+                const displayText = selectedSources.map(s => s.charAt(0).toUpperCase() + s.slice(1)).join(', ');
+                html += `
+                    <div class="applied-filter-item">
+                        <span class="applied-filter-label">Sources</span>
+                        <span class="applied-filter-value" title="${displayText}">${displayText}</span>
+                        <button class="applied-filter-clear" onclick="clearSources()" title="Clear sources">×</button>
+                    </div>
+                `;
+            }
+
+            // Min Sources
+            if (minSourceCount > 1) {
+                html += `
+                    <div class="applied-filter-item">
+                        <span class="applied-filter-label">Min Sources</span>
+                        <span class="applied-filter-value">${minSourceCount}</span>
+                        <button class="applied-filter-clear" onclick="clearMinSources()" title="Clear min sources">×</button>
+                    </div>
+                `;
+            }
+
+            // Date Range
+            if (dateStart || dateEnd) {
+                const dateText = dateStart && dateEnd 
+                    ? `${dateStart} to ${dateEnd}`
+                    : dateStart 
+                        ? `From ${dateStart}`
+                        : `Until ${dateEnd}`;
+                html += `
+                    <div class="applied-filter-item">
+                        <span class="applied-filter-label">Release Date</span>
+                        <span class="applied-filter-value">${dateText}</span>
+                        <button class="applied-filter-clear" onclick="clearDates()" title="Clear dates">×</button>
+                    </div>
+                `;
+            }
+
+            if (html) {
+                appliedFiltersDisplay.innerHTML = html;
+                appliedFiltersDisplay.classList.add('show');
+            } else {
+                appliedFiltersDisplay.classList.remove('show');
+            }
+        }
+
+        function clearMinSources() {
+            minSourcesInput.value = 1;
+            filterGames();
+            updateActiveFiltersCount();
+            updateAppliedFiltersDisplay();
+        }
+
+        function clearAllFilters() {
+            clearPlatforms();
+            clearSources();
+            clearMinSources();
+            clearDates();
+        }
 
         // Export Function
         function exportFilteredGames() {
@@ -1562,6 +1865,7 @@
         currentFilteredGames = db;
         renderGameList(db);
         updateActiveFiltersCount();
+        updateAppliedFiltersDisplay();
 
         // --- FILTER SETUP ---
         
@@ -1598,6 +1902,7 @@
                 input.addEventListener('change', () => {
                     filterGames();
                     updateActiveFiltersCount();
+                    updateAppliedFiltersDisplay();
                 });
 
                 label.appendChild(input);
@@ -1630,6 +1935,7 @@
                 input.addEventListener('change', () => {
                     filterGames();
                     updateActiveFiltersCount();
+                    updateAppliedFiltersDisplay();
                 });
 
                 label.appendChild(input);
@@ -1660,12 +1966,14 @@
             platformListEl.querySelectorAll('.checkbox-item').forEach(i => i.classList.remove('hidden'));
             filterGames();
             updateActiveFiltersCount();
+            updateAppliedFiltersDisplay();
         }
 
         function clearSources() {
             document.querySelectorAll('.source-chk').forEach(cb => cb.checked = false);
             filterGames();
             updateActiveFiltersCount();
+            updateAppliedFiltersDisplay();
         }
 
         function clearDates() {
@@ -1673,6 +1981,7 @@
             filterDateEnd.value = '';
             filterGames();
             updateActiveFiltersCount();
+            updateAppliedFiltersDisplay();
         }
 
         function updateActiveFiltersCount() {
@@ -1776,14 +2085,17 @@
         filterDateStart.addEventListener('change', () => {
             filterGames();
             updateActiveFiltersCount();
+            updateAppliedFiltersDisplay();
         });
         filterDateEnd.addEventListener('change', () => {
             filterGames();
             updateActiveFiltersCount();
+            updateAppliedFiltersDisplay();
         });
         minSourcesInput.addEventListener('input', () => {
             filterGames();
             updateActiveFiltersCount();
+            updateAppliedFiltersDisplay();
         });
 
         // --- RENDERING LOGIC ---
