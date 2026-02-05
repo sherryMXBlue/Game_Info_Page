@@ -4,251 +4,1234 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Game Data Explorer</title>
+    
+    <!-- ======================================================= -->
+    <!-- PASTE CONTENTS OF loader_snippet.html HERE -->
     <script src="data_chunks/games_db_part_1.js"></script>
     <script src="data_chunks/games_db_part_2.js"></script>
     <script src="data_chunks/games_db_part_3.js"></script>
     <script src="data_chunks/games_db_part_4.js"></script>
+    
+    <!-- Fallback if script wasn't run (remove this if you have real data) -->
+    <script>if(typeof window.GAMES_DB === 'undefined') window.GAMES_DB = [];</script>
+    <!-- ======================================================= -->
+
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
         :root {
-            --bg-dark: #121212;
-            --bg-panel: #1e1e1e;
-            --bg-card: #252525;
-            --accent: #bb86fc;
-            --accent-dim: rgba(187, 134, 252, 0.1);
-            --text-main: #e0e0e0;
-            --text-muted: #a0a0a0;
-            --border: #333;
-            --success: #03dac6;
-            --warning: #ffb74d;
+            --bg-primary: #0a0e27;
+            --bg-secondary: #131829;
+            --bg-tertiary: #1a1f3a;
+            --bg-card: #1e2540;
+            --accent-primary: #6366f1;
+            --accent-secondary: #8b5cf6;
+            --accent-gradient: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border: rgba(148, 163, 184, 0.1);
+            --success: #10b981;
+            --warning: #f59e0b;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.3);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.5);
+            --shadow-glow: 0 0 20px rgba(99, 102, 241, 0.3);
         }
 
-        body { font-family: 'Segoe UI', sans-serif; background-color: var(--bg-dark); color: var(--text-main); margin: 0; display: flex; height: 100vh; overflow: hidden; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: var(--bg-primary);
+            color: var(--text-primary); 
+            display: flex; 
+            height: 100vh; 
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Animated background */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(99, 102, 241, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
         
         /* SCROLLBAR */
         ::-webkit-scrollbar { width: 8px; height: 8px; }
-        ::-webkit-scrollbar-track { background: var(--bg-dark); }
-        ::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { 
+            background: rgba(148, 163, 184, 0.3); 
+            border-radius: 10px;
+            transition: background 0.2s;
+        }
+        ::-webkit-scrollbar-thumb:hover { background: rgba(148, 163, 184, 0.5); }
 
         /* LAYOUT */
-        #sidebar { width: 340px; background-color: var(--bg-panel); border-right: 1px solid var(--border); display: flex; flex-direction: column; }
-        #main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+        #app-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            position: relative;
+            z-index: 1;
+        }
 
-        /* SIDEBAR ITEMS */
-        #search-box { padding: 15px; border-bottom: 1px solid var(--border); }
-        #search-input { width: 100%; padding: 10px; background: #111; border: 1px solid var(--border); color: white; border-radius: 4px; box-sizing: border-box; }
+        #sidebar { 
+            width: 380px; 
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border); 
+            display: flex; 
+            flex-direction: column;
+            backdrop-filter: blur(10px);
+        }
+
+        #main { 
+            flex: 1; 
+            display: flex; 
+            flex-direction: column; 
+            overflow: hidden;
+            background: var(--bg-primary);
+        }
+
+        /* HEADER */
+        .app-header {
+            padding: 24px 32px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            backdrop-filter: blur(10px);
+        }
+
+        .app-header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 4px;
+        }
+
+        .app-header p {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        /* SEARCH BOX */
+        #search-box { 
+            padding: 24px 20px 20px;
+        }
+
+        .search-wrapper {
+            position: relative;
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        #search-input { 
+            width: 100%; 
+            padding: 14px 16px 14px 46px;
+            background: var(--bg-tertiary);
+            border: 2px solid transparent;
+            color: var(--text-primary);
+            border-radius: 12px;
+            font-size: 15px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        #search-input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            background: var(--bg-card);
+            box-shadow: var(--shadow-glow);
+        }
+
+        #search-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* FILTER TOGGLE */
+        .filter-toggle-section {
+            padding: 0 20px 16px;
+        }
+
+        .filter-toggle-btn {
+            width: 100%;
+            padding: 12px 16px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.3s ease;
+        }
+
+        .filter-toggle-btn:hover {
+            background: var(--bg-card);
+            border-color: var(--accent-primary);
+        }
+
+        .filter-toggle-btn.active {
+            background: var(--accent-gradient);
+            border-color: transparent;
+            color: white;
+        }
+
+        .filter-badge {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* FILTERS CONTAINER */
+        #filters-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0 20px 20px;
+            max-height: 0;
+            opacity: 0;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        #filters-container.expanded {
+            max-height: 1000px;
+            opacity: 1;
+        }
         
-        /* FILTERS */
-        .filter-group { padding: 15px; border-bottom: 1px solid var(--border); background: #1a1a1a; }
-        .filter-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .filter-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
-        .filter-action { font-size: 0.7rem; color: var(--accent); cursor: pointer; background: none; border: none; padding: 0; }
-        .filter-action:hover { text-decoration: underline; }
+        .filter-group { 
+            margin-bottom: 20px;
+            background: var(--bg-tertiary);
+            border-radius: 12px;
+            padding: 16px;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        .filter-group:hover {
+            border-color: rgba(99, 102, 241, 0.3);
+            box-shadow: var(--shadow-md);
+        }
+
+        .filter-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 12px;
+        }
+
+        .filter-label { 
+            font-size: 13px;
+            color: var(--text-secondary);
+            text-transform: uppercase; 
+            letter-spacing: 0.8px; 
+            font-weight: 600;
+        }
+
+        .filter-action { 
+            font-size: 12px;
+            color: var(--accent-primary);
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 6px;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+
+        .filter-action:hover { 
+            background: rgba(99, 102, 241, 0.1);
+        }
 
         /* PLATFORM SEARCH & LIST */
         #platform-search {
             width: 100%;
-            padding: 8px;
-            background: #252525;
+            padding: 10px 14px;
+            background: var(--bg-card);
             border: 1px solid var(--border);
-            border-bottom: none;
-            color: #eee;
-            font-size: 0.8rem;
-            box-sizing: border-box;
-            border-radius: 4px 4px 0 0;
+            color: var(--text-primary);
+            font-size: 13px;
+            border-radius: 8px;
             outline: none;
+            margin-bottom: 8px;
+            font-family: inherit;
+            transition: all 0.2s;
         }
-        #platform-search::placeholder { color: #666; font-style: italic; }
+
+        #platform-search:focus {
+            border-color: var(--accent-primary);
+            background: var(--bg-secondary);
+        }
+
+        #platform-search::placeholder { 
+            color: var(--text-muted);
+        }
         
         .checkbox-container {
-            max-height: 150px;
+            max-height: 200px;
             overflow-y: auto;
-            background: #111;
+            background: var(--bg-card);
             border: 1px solid var(--border);
-            border-radius: 0 0 4px 4px; /* Bottom corners rounded */
-            padding: 5px;
+            border-radius: 8px;
+            padding: 4px;
         }
+
         .checkbox-item {
             display: flex;
             align-items: center;
-            padding: 6px 8px;
-            border-radius: 4px;
+            padding: 8px 12px;
+            border-radius: 6px;
             cursor: pointer;
-            transition: background 0.2s;
-            font-size: 0.85rem;
-            color: #ccc;
+            transition: all 0.2s;
+            font-size: 14px;
+            color: var(--text-primary);
         }
-        .checkbox-item:hover { background: #252525; }
-        .checkbox-item input { margin-right: 10px; accent-color: var(--accent); cursor: pointer; }
-        .checkbox-item.hidden { display: none !important; }
 
-        /* MODERN DATE INPUTS */
-        .date-row { display: flex; gap: 10px; }
-        .date-col { flex: 1; display: flex; flex-direction: column; gap: 4px; }
-        .date-col label { font-size: 0.7rem; color: #777; }
+        .checkbox-item:hover { 
+            background: var(--bg-tertiary);
+        }
+
+        .checkbox-item input { 
+            margin-right: 12px;
+            accent-color: var(--accent-primary);
+            cursor: pointer;
+            width: 16px;
+            height: 16px;
+        }
+
+        .checkbox-item.hidden { 
+            display: none !important;
+        }
+
+        /* NUMBER INPUT */
+        input[type="number"] {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 10px 14px;
+            border-radius: 8px;
+            width: 100%;
+            font-family: inherit;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        input[type="number"]:focus { 
+            outline: none;
+            border-color: var(--accent-primary);
+        }
+
+        .filter-hint {
+            font-size: 12px;
+            color: var(--text-muted);
+            margin-top: 8px;
+            line-height: 1.4;
+        }
+
+        /* DATE INPUTS */
+        .date-row { 
+            display: flex;
+            gap: 12px;
+        }
+
+        .date-col { 
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .date-col label { 
+            font-size: 12px;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
         
         input[type="date"] {
-            background: #111;
+            background: var(--bg-card);
             border: 1px solid var(--border);
-            color: #ddd;
-            padding: 8px 10px;
-            border-radius: 6px;
+            color: var(--text-primary);
+            padding: 10px 12px;
+            border-radius: 8px;
             font-family: inherit;
-            font-size: 0.85rem;
-            width: 100%;
-            box-sizing: border-box;
+            font-size: 13px;
             color-scheme: dark;
-            transition: border-color 0.2s;
+            transition: all 0.2s;
         }
-        input[type="date"]:focus { outline: none; border-color: var(--accent); }
-        input[type="date"]::-webkit-calendar-picker-indicator { opacity: 0.6; cursor: pointer; }
+
+        input[type="date"]:focus { 
+            outline: none;
+            border-color: var(--accent-primary);
+        }
 
         /* Results Count */
-        #results-count { padding: 10px 15px; font-size: 0.8rem; color: #666; font-style: italic; border-bottom: 1px solid var(--border); background: var(--bg-panel); }
+        #results-count { 
+            padding: 16px 20px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            background: var(--bg-tertiary);
+            border-bottom: 1px solid var(--border);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
 
-        #game-list { flex: 1; overflow-y: auto; }
-        .game-item { padding: 15px; cursor: pointer; border-bottom: 1px solid var(--border); transition: 0.2s; }
-        .game-item:hover { background-color: var(--bg-card); }
-        .game-item.active { background-color: var(--accent); color: #000; font-weight: bold; }
-        .source-badge { font-size: 0.7em; background: #333; padding: 2px 5px; border-radius: 3px; color: #fff; margin-right: 3px; }
+        .result-number {
+            color: var(--accent-primary);
+            font-weight: 700;
+        }
+
+        .results-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .export-btn {
+            background: var(--accent-gradient);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-glow);
+        }
+
+        .export-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Export Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.2s ease;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: var(--shadow-lg);
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .modal-header {
+            margin-bottom: 24px;
+        }
+
+        .modal-title {
+            font-size: 24px;
+            font-weight: 700;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 8px;
+        }
+
+        .modal-subtitle {
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .export-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .export-option {
+            background: var(--bg-tertiary);
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+        }
+
+        .export-option:hover {
+            border-color: var(--accent-primary);
+            background: var(--bg-card);
+            transform: translateX(4px);
+        }
+
+        .export-option-icon {
+            font-size: 32px;
+            flex-shrink: 0;
+        }
+
+        .export-option-content {
+            flex: 1;
+        }
+
+        .export-option-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+        }
+
+        .export-option-desc {
+            font-size: 13px;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+        }
+
+        .modal-btn {
+            padding: 12px 24px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+        }
+
+        .modal-btn-cancel {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .modal-btn-cancel:hover {
+            background: var(--bg-card);
+        }
+
+        #game-list { 
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+        }
+
+        .game-item { 
+            padding: 16px;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.2s;
+            margin-bottom: 6px;
+            background: var(--bg-tertiary);
+            border: 1px solid transparent;
+        }
+
+        .game-item:hover { 
+            background: var(--bg-card);
+            border-color: var(--accent-primary);
+            transform: translateX(4px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .game-item.active { 
+            background: var(--accent-gradient);
+            border-color: transparent;
+            box-shadow: var(--shadow-glow);
+        }
+
+        .game-item.active .game-title,
+        .game-item.active .game-meta {
+            color: white;
+        }
+
+        .game-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .game-meta {
+            font-size: 12px;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .source-badge { 
+            font-size: 11px;
+            background: var(--success);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 6px;
+            font-weight: 600;
+        }
 
         /* HEADER & TABS */
-        #header { padding: 20px 30px; background: var(--bg-panel); border-bottom: 1px solid var(--border); }
-        h1 { margin: 0; font-size: 1.8rem; }
-        #tabs { display: flex; background: var(--bg-panel); border-bottom: 1px solid var(--border); padding: 0 20px; flex-wrap: wrap; }
-        .tab-btn { padding: 15px 20px; background: none; border: none; color: var(--text-muted); cursor: pointer; border-bottom: 3px solid transparent; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; }
-        .tab-btn:hover { color: #fff; }
-        .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+        #header { 
+            padding: 32px 40px;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+        }
+
+        h1 { 
+            font-size: 32px;
+            font-weight: 700;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        #tabs { 
+            display: flex;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            padding: 0 32px;
+            overflow-x: auto;
+            gap: 4px;
+        }
+
+        .tab-btn { 
+            padding: 16px 24px;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            font-size: 14px;
+            font-weight: 600;
+            letter-spacing: 0.3px;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .tab-btn:hover { 
+            color: var(--text-primary);
+            background: rgba(99, 102, 241, 0.05);
+        }
+
+        .tab-btn.active { 
+            color: var(--accent-primary);
+            border-bottom-color: var(--accent-primary);
+            background: rgba(99, 102, 241, 0.1);
+        }
 
         /* CONTENT PANELS */
-        #panels-container { flex: 1; overflow-y: auto; padding: 30px; scroll-behavior: smooth; }
-        .panel { display: none; max-width: 1400px; margin: 0 auto; }
-        .panel.active { display: block; }
-        
-        /* --- VISUAL OVERVIEW STYLES --- */
-        .dashboard-grid { display: grid; grid-template-columns: 320px 1fr; gap: 30px; }
-        .poster-card { width: 100%; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); margin-bottom: 20px; }
-        .poster-card img { width: 100%; display: block; }
-        
-        .data-table { width: 100%; border-collapse: collapse; background: var(--bg-card); border-radius: 8px; overflow: hidden; font-size: 0.9rem; margin-bottom: 20px; }
-        .data-table th, .data-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--border); }
-        .data-table th { background: #2a2a2a; color: var(--text-muted); font-weight: 600; width: 35%; }
-        
-        .section-title { font-size: 1.2rem; color: var(--accent); margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 5px; margin-top: 5px; }
-        
-        .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; margin-bottom: 25px; }
-        .stat-card { background: var(--bg-card); padding: 15px; border-radius: 8px; text-align: center; border: 1px solid var(--border); }
-        .stat-value { font-size: 1.6rem; font-weight: bold; color: #fff; }
-        .stat-label { font-size: 0.8rem; color: var(--text-muted); margin-top: 5px; text-transform: uppercase; }
+        #panels-container { 
+            flex: 1;
+            overflow-y: auto;
+            padding: 40px;
+        }
 
-        .pill-container { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; }
-        .pill { background: var(--bg-card); padding: 6px 12px; border-radius: 20px; font-size: 0.85rem; border: 1px solid #333; color: var(--text-muted); }
-        .pill.genre { color: var(--success); border-color: rgba(3, 218, 198, 0.2); }
-        .pill.platform { color: #fff; background: #333; }
-        .pill a { text-decoration: none; color: inherit; }
+        .panel { 
+            display: none;
+            max-width: 1600px;
+            margin: 0 auto;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .panel.active { 
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* VISUAL OVERVIEW STYLES */
+        .dashboard-grid { 
+            display: grid;
+            grid-template-columns: 360px 1fr;
+            gap: 40px;
+        }
+
+        .dashboard-left {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .poster-card { 
+            width: 100%;
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border);
+        }
+
+        .poster-card img { 
+            width: 100%;
+            display: block;
+        }
+        
+        .data-table { 
+            width: 100%;
+            border-collapse: collapse;
+            background: var(--bg-card);
+            border-radius: 12px;
+            overflow: hidden;
+            font-size: 14px;
+            border: 1px solid var(--border);
+        }
+
+        .data-table th, .data-table td { 
+            padding: 14px 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .data-table tr:last-child th,
+        .data-table tr:last-child td {
+            border-bottom: none;
+        }
+
+        .data-table th { 
+            background: var(--bg-tertiary);
+            color: var(--text-secondary);
+            font-weight: 600;
+            width: 40%;
+        }
+
+        .data-table td {
+            color: var(--text-primary);
+        }
+        
+        .section-title { 
+            font-size: 18px;
+            color: var(--accent-primary);
+            margin-bottom: 16px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background: var(--accent-gradient);
+            border-radius: 2px;
+        }
+        
+        .stats-row { 
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card { 
+            background: var(--bg-card);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid var(--border);
+            transition: all 0.3s;
+        }
+
+        .stat-card:hover {
+            border-color: var(--accent-primary);
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+
+        .stat-value { 
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+        }
+
+        .stat-label { 
+            font-size: 12px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        .pill-container { 
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .pill { 
+            background: var(--bg-card);
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            transition: all 0.2s;
+        }
+
+        .pill:hover {
+            border-color: var(--accent-primary);
+            color: var(--text-primary);
+        }
+
+        .pill.genre { 
+            color: var(--success);
+            border-color: rgba(16, 185, 129, 0.3);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .pill.platform { 
+            color: var(--text-primary);
+            background: var(--bg-tertiary);
+        }
+
+        .pill a { 
+            text-decoration: none;
+            color: inherit;
+        }
 
         /* CREDITS */
-        .bfi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px; margin-bottom: 20px; }
-        .bfi-card { background: var(--accent-dim); border: 1px solid var(--accent); padding: 15px; border-radius: 8px; display: flex; flex-direction: column; }
-        .bfi-role { color: var(--accent); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; margin-bottom: 5px; }
-        .bfi-name { font-size: 1.1rem; font-weight: 600; color: #fff; }
+        .bfi-grid { 
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
 
-        .credits-grid { display: none; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 15px; }
-        .credits-grid.show { display: grid; }
-        .credit-item { background: var(--bg-card); padding: 10px; border-radius: 6px; display: flex; flex-direction: column; border: 1px solid var(--border); }
-        .credit-role { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px; }
-        .credit-name { font-weight: 500; font-size: 0.95rem; }
+        .bfi-card { 
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            padding: 16px;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.3s;
+        }
 
-        .expand-btn { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-main); width: 100%; padding: 12px; border-radius: 6px; cursor: pointer; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; font-size: 0.8rem; transition: 0.2s; }
-        .expand-btn:hover { background: #333; color: white; border-color: #555; }
-        .expand-btn:after { content: " ▼"; }
-        .expand-btn.active:after { content: " ▲"; }
+        .bfi-card:hover {
+            background: rgba(99, 102, 241, 0.15);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .bfi-role { 
+            color: var(--accent-primary);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .bfi-name { 
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .credits-grid { 
+            display: none;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .credits-grid.show { 
+            display: grid;
+        }
+
+        .credit-item { 
+            background: var(--bg-card);
+            padding: 12px;
+            border-radius: 10px;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+        }
+
+        .credit-item:hover {
+            border-color: var(--accent-primary);
+            transform: translateY(-2px);
+        }
+
+        .credit-role { 
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 4px;
+            font-weight: 600;
+        }
+
+        .credit-name { 
+            font-weight: 500;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .expand-btn { 
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            width: 100%;
+            padding: 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 13px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .expand-btn:hover { 
+            background: var(--bg-tertiary);
+            border-color: var(--accent-primary);
+        }
+
+        .expand-btn::after { 
+            content: "▼";
+            transition: transform 0.3s;
+        }
+
+        .expand-btn.active::after { 
+            transform: rotate(180deg);
+        }
 
         /* COPY BUTTON */
-        .copy-btn { background: #333; color: #fff; border: 1px solid #555; padding: 8px 16px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; display: inline-flex; align-items: center; transition: all 0.2s; }
-        .copy-btn:hover { background: #444; border-color: #777; }
-        .copy-toolbar { text-align: right; margin-bottom: 10px; }
+        .copy-btn { 
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
 
-        .media-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
-        .media-item { aspect-ratio: 16/9; background: #000; border-radius: 6px; overflow: hidden; transition: transform 0.2s; }
-        .media-item:hover { transform: scale(1.02); }
-        .media-item img { width: 100%; height: 100%; object-fit: cover; }
+        .copy-btn:hover { 
+            background: var(--bg-tertiary);
+            border-color: var(--accent-primary);
+        }
 
-        pre { background: #111; padding: 15px; border-radius: 6px; border: 1px solid #333; overflow-x: auto; color: #a5d6a7; white-space: pre-wrap; word-wrap: break-word; margin-top: 0; }
-        .missing-msg { text-align: center; margin-top: 50px; color: var(--text-muted); font-size: 1.2rem; }
+        .copy-toolbar { 
+            text-align: right;
+            margin-bottom: 16px;
+        }
+
+        .media-grid { 
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 12px;
+        }
+
+        .media-item { 
+            aspect-ratio: 16/9;
+            background: var(--bg-tertiary);
+            border-radius: 10px;
+            overflow: hidden;
+            transition: all 0.3s;
+            cursor: pointer;
+            border: 1px solid var(--border);
+        }
+
+        .media-item:hover { 
+            transform: scale(1.05);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--accent-primary);
+        }
+
+        .media-item img { 
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        pre { 
+            background: var(--bg-tertiary);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            overflow-x: auto;
+            color: #a5d6a7;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            margin-top: 0;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .missing-msg { 
+            text-align: center;
+            margin-top: 80px;
+            color: var(--text-muted);
+            font-size: 18px;
+        }
+
+        .empty-state { 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            color: var(--text-muted);
+            font-size: 18px;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .empty-state-icon {
+            font-size: 64px;
+            opacity: 0.3;
+        }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            #sidebar {
+                width: 100%;
+                max-width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
+    <div id="app-container">
+        <div id="sidebar">
+            <!-- App Header -->
+            <div class="app-header">
+                <h1>Game Explorer</h1>
+                <p>Discover and explore game data</p>
+            </div>
 
-    <div id="sidebar">
-        <!-- Search -->
-        <div id="search-box">
-            <input type="text" id="search-input" placeholder="Search title...">
-        </div>
-        
-        <!-- Platform Checkboxes -->
-        <div class="filter-group">
-            <div class="filter-header">
-                <span class="filter-label">Platforms</span>
-                <button class="filter-action" onclick="clearPlatforms()">Clear</button>
-            </div>
-            
-            <!-- Platform Mini Search -->
-            <input type="text" id="platform-search" placeholder="Filter platforms...">
-            
-            <div id="platform-list" class="checkbox-container">
-                <!-- Populated via JS -->
-            </div>
-        </div>
-
-        <!-- Modern Date Filter -->
-        <div class="filter-group">
-            <div class="filter-header">
-                <span class="filter-label">Release Date</span>
-                <button class="filter-action" onclick="clearDates()">Reset</button>
-            </div>
-            <div class="date-row">
-                <div class="date-col">
-                    <label>From</label>
-                    <input type="date" id="filter-date-start">
-                </div>
-                <div class="date-col">
-                    <label>To</label>
-                    <input type="date" id="filter-date-end">
+            <!-- Search -->
+            <div id="search-box">
+                <div class="search-wrapper">
+                    <span class="search-icon">🔍</span>
+                    <input type="text" id="search-input" placeholder="Search games...">
                 </div>
             </div>
+
+            <!-- Filter Toggle -->
+            <div class="filter-toggle-section">
+                <button class="filter-toggle-btn" id="filter-toggle">
+                    <span>⚙️ Advanced Filters</span>
+                    <span class="filter-badge" id="active-filters">0</span>
+                </button>
+            </div>
+            
+            <!-- Filters Container -->
+            <div id="filters-container">
+                <!-- Platform Checkboxes -->
+                <div class="filter-group">
+                    <div class="filter-header">
+                        <span class="filter-label">🎮 Platforms</span>
+                        <button class="filter-action" onclick="clearPlatforms()">Clear</button>
+                    </div>
+                    <input type="text" id="platform-search" placeholder="Search platforms...">
+                    <div id="platform-list" class="checkbox-container"></div>
+                </div>
+
+                <!-- Source Filter -->
+                <div class="filter-group">
+                    <div class="filter-header">
+                        <span class="filter-label">📊 Data Sources</span>
+                        <button class="filter-action" onclick="clearSources()">Clear</button>
+                    </div>
+                    <div id="source-list" class="checkbox-container"></div>
+                </div>
+
+                <!-- Minimum Sources Filter -->
+                <div class="filter-group">
+                    <div class="filter-header">
+                        <span class="filter-label">🔢 Min. Source Count</span>
+                    </div>
+                    <input type="number" id="min-sources" min="1" value="1" placeholder="1">
+                    <div class="filter-hint">
+                        Show games found in at least this many files
+                    </div>
+                </div>
+
+                <!-- Date Filter -->
+                <div class="filter-group">
+                    <div class="filter-header">
+                        <span class="filter-label">📅 Release Date</span>
+                        <button class="filter-action" onclick="clearDates()">Reset</button>
+                    </div>
+                    <div class="date-row">
+                        <div class="date-col">
+                            <label>From</label>
+                            <input type="date" id="filter-date-start">
+                        </div>
+                        <div class="date-col">
+                            <label>To</label>
+                            <input type="date" id="filter-date-end">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="results-count">
+                <div class="results-info">
+                    <span>📋</span>
+                    <span>Showing <span class="result-number">all</span> games</span>
+                </div>
+                <button class="export-btn" onclick="exportFilteredGames()">
+                    <span>💾</span>
+                    <span>Export</span>
+                </button>
+            </div>
+            <div id="game-list"></div>
         </div>
 
-        <div id="results-count">Showing all games</div>
-        <div id="game-list"></div>
+        <div id="main">
+            <div id="content-wrapper" style="display:none; height: 100%; flex-direction: column;">
+                <div id="header">
+                    <h1 id="game-title">Game Title</h1>
+                </div>
+                <div id="tabs"></div>
+                <div id="panels-container"></div>
+            </div>
+            
+            <div id="empty-state" class="empty-state">
+                <div class="empty-state-icon">🎮</div>
+                <div>Select a game to view details</div>
+            </div>
+        </div>
     </div>
 
-    <div id="main">
-        <div id="content-wrapper" style="display:none; height: 100%; flex-direction: column;">
-            <div id="header">
-                <h1 id="game-title">Game Title</h1>
+    <!-- Export Modal -->
+    <div id="export-modal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h2 class="modal-title">Export Games</h2>
+                <p class="modal-subtitle">Choose your export format</p>
             </div>
-            <div id="tabs"></div>
-            <div id="panels-container"></div>
-        </div>
-        
-        <div id="empty-state" style="display:flex; justify-content:center; align-items:center; height:100%; color: var(--text-muted);">
-            Select a game to view details
+            
+            <div class="export-options">
+                <div class="export-option" onclick="exportAsExcel()">
+                    <div class="export-option-icon">📊</div>
+                    <div class="export-option-content">
+                        <div class="export-option-title">Excel (Combined Data)</div>
+                        <div class="export-option-desc">
+                            Export merged data as a spreadsheet with columns for title, release date, platforms, developers, ratings, etc.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="export-option" onclick="exportAsJSON()">
+                    <div class="export-option-icon">📄</div>
+                    <div class="export-option-content">
+                        <div class="export-option-title">JSON (Full Raw Data)</div>
+                        <div class="export-option-desc">
+                            Export complete data including all source files and raw information for advanced use.
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="modal-actions">
+                <button class="modal-btn modal-btn-cancel" onclick="closeExportModal()">Cancel</button>
+            </div>
         </div>
     </div>
 
     <script>
-        if (typeof window.GAMES_DB === 'undefined') {
-            document.body.innerHTML = "<h2 style='color:white; text-align:center; margin-top:50px'>Error: games_db.js not found.</h2>";
-        }
-
+        // Check if DB loaded
         const db = window.GAMES_DB || [];
+        if (db.length === 0) {
+            console.warn("GAMES_DB is empty. Did you load the script chunks in the <head>?");
+        }
         
-        // DOM Elements
+        // --- DOM Elements ---
         const gameListEl = document.getElementById('game-list');
         const resultsCountEl = document.getElementById('results-count');
         const searchInput = document.getElementById('search-input');
+        
         const platformSearchInput = document.getElementById('platform-search');
         const platformListEl = document.getElementById('platform-list');
+        
+        const sourceListEl = document.getElementById('source-list');
+        const minSourcesInput = document.getElementById('min-sources');
+        
         const filterDateStart = document.getElementById('filter-date-start');
         const filterDateEnd = document.getElementById('filter-date-end');
 
@@ -258,17 +1241,346 @@
         const tabsEl = document.getElementById('tabs');
         const panelsContainer = document.getElementById('panels-container');
 
-        // Initialize
-        populatePlatformCheckboxes();
-        renderGameList(db);
+        const filterToggle = document.getElementById('filter-toggle');
+        const filtersContainer = document.getElementById('filters-container');
+        const activeFiltersCount = document.getElementById('active-filters');
 
-        // --- FILTER LOGIC ---
+        // Track currently filtered games
+        let currentFilteredGames = [];
+
+        // Filter Toggle Logic
+        filterToggle.addEventListener('click', () => {
+            filtersContainer.classList.toggle('expanded');
+            filterToggle.classList.toggle('active');
+        });
+
+        // Export Function
+        function exportFilteredGames() {
+            if (currentFilteredGames.length === 0) {
+                alert('No games to export!');
+                return;
+            }
+            
+            // Show export modal
+            document.getElementById('export-modal').classList.add('show');
+        }
+
+        function closeExportModal() {
+            document.getElementById('export-modal').classList.remove('show');
+        }
+
+        // Close modal on background click
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('export-modal').addEventListener('click', (e) => {
+                if (e.target.id === 'export-modal') {
+                    closeExportModal();
+                }
+            });
+        });
+
+        function exportAsJSON() {
+            // Create export data with full JSON
+            const exportData = currentFilteredGames.map(game => ({
+                display_name: game.display_name,
+                sources: game.sources
+            }));
+
+            // Convert to JSON string
+            const jsonString = JSON.stringify(exportData, null, 2);
+            
+            // Create blob and download
+            const blob = new Blob([jsonString], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            
+            // Generate filename with timestamp and filter info
+            const timestamp = new Date().toISOString().slice(0, 10);
+            const count = currentFilteredGames.length;
+            a.download = `games_export_full_${count}_${timestamp}.json`;
+            
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            closeExportModal();
+        }
+
+        function exportAsExcel() {
+            // Prepare data for Excel export
+            const rows = [];
+            
+            // Header row
+            rows.push([
+                'Title',
+                'Release Date',
+                'Platforms',
+                'Developers',
+                'Publishers',
+                'Genres',
+                'Tags',
+                'IMDb Rating',
+                'IMDb Votes',
+                'RAWG Rating',
+                'RAWG Votes',
+                'Content Rating',
+                'Description',
+                'Website',
+                'IMDb ID',
+                'RAWG ID',
+                'MobyGames URL'
+            ]);
+
+            // Data rows
+            currentFilteredGames.forEach(game => {
+                const combined = game.sources.combined || {};
+                const info = combined.basic_info || {};
+                const metrics = combined.metrics || {};
+                const classif = combined.classification || {};
+                const comps = combined.companies || {};
+                
+                rows.push([
+                    info.title || game.display_name || '',
+                    info.release_date || '',
+                    (combined.platforms || []).map(p => normalizePlatform(p)).join(', '),
+                    (comps.developers || []).join(', '),
+                    (comps.publishers || []).join(', '),
+                    (classif.genres || []).join(', '),
+                    (classif.tags || []).slice(0, 10).join(', '),
+                    metrics.rating_imdb || '',
+                    metrics.vote_count_imdb || '',
+                    metrics.rating_rawg || '',
+                    metrics.vote_count_rawg || '',
+                    classif.content_rating || '',
+                    info.description || '',
+                    info.website || '',
+                    info.ids?.imdb || '',
+                    info.ids?.rawg || '',
+                    info.ids?.mobygames || ''
+                ]);
+            });
+
+            // Convert to CSV
+            const csvContent = rows.map(row => 
+                row.map(cell => {
+                    // Escape quotes and wrap in quotes if contains comma, quote, or newline
+                    const cellStr = String(cell);
+                    if (cellStr.includes(',') || cellStr.includes('"') || cellStr.includes('\n')) {
+                        return `"${cellStr.replace(/"/g, '""')}"`;
+                    }
+                    return cellStr;
+                }).join(',')
+            ).join('\n');
+
+            // Create blob and download
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            
+            const timestamp = new Date().toISOString().slice(0, 10);
+            const count = currentFilteredGames.length;
+            a.download = `games_export_${count}_${timestamp}.csv`;
+            
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            closeExportModal();
+        }
+
+        // --- PLATFORM NORMALIZATION MAP ---
+        const PLATFORM_MAP = {
+            // --- NINTENDO ---
+            "nes": "NES",
+            "entertainment system": "NES",
+            "entertainment system (nes)": "NES",
+            "snes": "SNES",
+            "super nintendo": "SNES",
+            "super entertainment system": "SNES",
+            "n64": "Nintendo 64",
+            "64": "Nintendo 64",
+            "nintendo 64": "Nintendo 64",
+            "gamecube": "GameCube",
+            "ngc": "GameCube",
+            "wii": "Wii",
+            "wii u": "Wii U",
+            "switch": "Nintendo Switch",
+            "nintendo switch": "Nintendo Switch",
+            "switch 2": "Nintendo Switch 2",
+            
+            // Nintendo Handhelds
+            "gb": "Game Boy",
+            "game boy": "Game Boy",
+            "gba": "Game Boy Advance",
+            "game boy advance": "Game Boy Advance",
+            "game boy color": "Game Boy Color",
+            "ds": "Nintendo DS",
+            "nintendo ds": "Nintendo DS",
+            "dsi": "Nintendo DSi",
+            "3ds": "Nintendo 3DS",
+            "3ds": "Nintendo 3DS", 
+            "new nintendo 3ds": "Nintendo 3DS",
+            "game & watch": "Game & Watch",
+            "pokemon mini": "Pokémon mini",
+
+            // --- PLAYSTATION ---
+            "ps1": "PlayStation 1",
+            "playstation": "PlayStation 1",
+            "ps2": "PlayStation 2",
+            "playstation 2": "PlayStation 2",
+            "ps3": "PlayStation 3",
+            "playstation 3": "PlayStation 3",
+            "ps4": "PlayStation 4",
+            "playstation 4": "PlayStation 4",
+            "ps5": "PlayStation 5",
+            "playstation 5": "PlayStation 5",
+            "psp": "PSP",
+            "playstation portable": "PSP",
+            "ps vita": "PS Vita",
+            "playstation vita": "PS Vita",
+            "playstation vr": "PlayStation VR",
+            "playstation vr2": "PlayStation VR2",
+
+            // --- XBOX ---
+            "xbox": "Xbox",
+            "original xbox": "Xbox",
+            "xbox 360": "Xbox 360",
+            "microsoft xbox 360": "Xbox 360",
+            "x360": "Xbox 360",
+            "xbox one": "Xbox One",
+            "microsoft xbox one": "Xbox One",
+            "xb1": "Xbox One",
+            "xbox series": "Xbox Series X/S",
+            "xbox series x": "Xbox Series X/S",
+            "xbox series s": "Xbox Series X/S",
+            "microsoft xbox series x": "Xbox Series X/S",
+            
+            // --- SEGA ---
+            "master system": "Sega Master System",
+            "sega master system": "Sega Master System",
+            "genesis": "Sega Genesis",
+            "sega genesis": "Sega Genesis",
+            "sega mega drive/genesis": "Sega Genesis",
+            "sega saturn": "Sega Saturn",
+            "dreamcast": "Dreamcast",
+            "game gear": "Game Gear",
+            "sega 32x": "Sega 32X",
+            "sega cd": "Sega CD",
+
+            // --- PC / COMPUTER ---
+            "pc": "PC",
+            "windows": "PC",
+            "pc (microsoft windows)": "PC",
+            "windows apps": "PC",
+            "dos": "DOS",
+            "ms-dos": "DOS",
+            "pc booter": "DOS",
+            "mac": "Mac",
+            "macos": "Mac",
+            "classic macintosh": "Mac",
+            "apple ii": "Apple II",
+            "apple ii": "Apple II",
+            "linux": "Linux",
+            "commodore 64": "Commodore 64",
+            "commodore c64/128/max": "Commodore 64",
+            "commodore 16, plus/4": "Commodore 16",
+            "commodore pet/cbm": "Commodore PET",
+            "amiga": "Amiga",
+            "commodore / amiga": "Amiga",
+            "amiga cd32": "Amiga CD32",
+            "atari st": "Atari ST",
+            "atari st/ste": "Atari ST",
+            "zx spectrum": "ZX Spectrum",
+            "sinclair zx spectrum": "ZX Spectrum",
+            "zx spectrum next": "ZX Spectrum Next",
+            "amstrad cpc": "Amstrad CPC",
+            "msx": "MSX",
+            "pc-98": "PC-98",
+            "x68000": "Sharp X68000",
+            "fm towns": "FM Towns",
+
+            // --- ATARI ---
+            "atari 2600": "Atari 2600",
+            "atari vcs": "Atari 2600",
+            "atari 5200": "Atari 5200",
+            "atari 7800": "Atari 7800",
+            "atari 8-bit": "Atari 8-bit",
+            "atari jaguar": "Atari Jaguar",
+            "atari lynx": "Atari Lynx",
+            "lynx": "Atari Lynx",
+
+            // --- MOBILE ---
+            "ios": "iOS",
+            "iphone": "iOS",
+            "ipad": "iOS",
+            "android": "Android",
+            "windows phone": "Windows Mobile",
+            "windows mobile": "Windows Mobile",
+            "blackberry": "BlackBerry",
+            "j2me": "Java Mobile (J2ME)",
+            "palm os": "Palm OS",
+            "symbian": "Symbian",
+
+            // --- VR / OTHERS ---
+            "oculus quest": "Meta Quest",
+            "meta quest 2": "Meta Quest",
+            "meta quest 3": "Meta Quest",
+            "quest": "Meta Quest",
+            "oculus rift": "Oculus Rift",
+            "steamvr": "SteamVR",
+            "browser": "Web Browser",
+            "web": "Web Browser",
+            "web browser": "Web Browser",
+            "arcade": "Arcade",
+            "neo geo": "Neo Geo",
+            "neo geo aes": "Neo Geo",
+            "neo geo mvs": "Neo Geo",
+            "neo geo cd": "Neo Geo CD",
+            "stadia": "Google Stadia",
+            "google stadia": "Google Stadia",
+            "xbox cloud gaming": "Xbox Cloud",
+            "ouya": "Ouya",
+            "intellivision": "Intellivision",
+            "colecovision": "ColecoVision",
+            "turbografx-16": "TurboGrafx-16",
+            "turbografx cd": "TurboGrafx CD",
+            "3do": "3DO Interactive Multiplayer"
+        };
+
+        function normalizePlatform(p) {
+            if (!p) return "Unknown";
+            const lower = p.toLowerCase().trim();
+            return PLATFORM_MAP[lower] || p.charAt(0).toUpperCase() + p.slice(1);
+        }
+
+        // --- INITIALIZATION ---
+        populatePlatformCheckboxes();
+        populateSourceCheckboxes();
+        currentFilteredGames = db;
+        renderGameList(db);
+        updateActiveFiltersCount();
+
+        // --- FILTER SETUP ---
         
         function populatePlatformCheckboxes() {
             const allPlatforms = new Set();
+            
             db.forEach(game => {
                 if(game.sources.combined && game.sources.combined.platforms) {
-                    game.sources.combined.platforms.forEach(p => allPlatforms.add(p));
+                    game.sources.combined.platforms.forEach(p => {
+                        allPlatforms.add(normalizePlatform(p));
+                    });
+                } 
+                else {
+                    Object.values(game.sources).forEach(src => {
+                        if(src.platforms && Array.isArray(src.platforms)) {
+                            src.platforms.forEach(p => allPlatforms.add(normalizePlatform(p)));
+                        }
+                        if(src.platform) allPlatforms.add(normalizePlatform(src.platform));
+                    });
                 }
             });
             
@@ -281,9 +1593,12 @@
                 
                 const input = document.createElement('input');
                 input.type = 'checkbox';
-                input.value = p;
+                input.value = p; 
                 input.className = 'platform-chk';
-                input.addEventListener('change', filterGames);
+                input.addEventListener('change', () => {
+                    filterGames();
+                    updateActiveFiltersCount();
+                });
 
                 label.appendChild(input);
                 label.appendChild(document.createTextNode(p));
@@ -291,10 +1606,43 @@
             });
         }
 
+        function populateSourceCheckboxes() {
+            const allSources = new Set();
+            db.forEach(game => {
+                if(game.sources) {
+                    Object.keys(game.sources).forEach(k => {
+                        if (k !== 'combined') allSources.add(k);
+                    });
+                }
+            });
+            
+            const sorted = Array.from(allSources).sort();
+            
+            sourceListEl.innerHTML = '';
+            sorted.forEach(s => {
+                const label = document.createElement('label');
+                label.className = 'checkbox-item';
+                
+                const input = document.createElement('input');
+                input.type = 'checkbox';
+                input.value = s;
+                input.className = 'source-chk';
+                input.addEventListener('change', () => {
+                    filterGames();
+                    updateActiveFiltersCount();
+                });
+
+                label.appendChild(input);
+                const displayName = s.charAt(0).toUpperCase() + s.slice(1);
+                label.appendChild(document.createTextNode(displayName));
+                sourceListEl.appendChild(label);
+            });
+        }
+
         // Platform Search Listener
         platformSearchInput.addEventListener('input', (e) => {
             const term = e.target.value.toLowerCase();
-            const items = document.querySelectorAll('.checkbox-item');
+            const items = platformListEl.querySelectorAll('.checkbox-item');
             
             items.forEach(item => {
                 const text = item.textContent.toLowerCase();
@@ -308,16 +1656,48 @@
 
         function clearPlatforms() {
             document.querySelectorAll('.platform-chk').forEach(cb => cb.checked = false);
-            platformSearchInput.value = ''; // Clear search too
-            // Reset visibility
-            document.querySelectorAll('.checkbox-item').forEach(i => i.classList.remove('hidden'));
+            platformSearchInput.value = ''; 
+            platformListEl.querySelectorAll('.checkbox-item').forEach(i => i.classList.remove('hidden'));
             filterGames();
+            updateActiveFiltersCount();
+        }
+
+        function clearSources() {
+            document.querySelectorAll('.source-chk').forEach(cb => cb.checked = false);
+            filterGames();
+            updateActiveFiltersCount();
         }
 
         function clearDates() {
             filterDateStart.value = '';
             filterDateEnd.value = '';
             filterGames();
+            updateActiveFiltersCount();
+        }
+
+        function updateActiveFiltersCount() {
+            let count = 0;
+            
+            // Count selected platforms
+            count += document.querySelectorAll('.platform-chk:checked').length;
+            
+            // Count selected sources
+            count += document.querySelectorAll('.source-chk:checked').length;
+            
+            // Count date filters
+            if (filterDateStart.value) count++;
+            if (filterDateEnd.value) count++;
+            
+            // Count min sources if not default
+            if (parseInt(minSourcesInput.value) > 1) count++;
+            
+            activeFiltersCount.textContent = count;
+            
+            if (count > 0) {
+                filterToggle.classList.add('active');
+            } else {
+                filterToggle.classList.remove('active');
+            }
         }
 
         function filterGames() {
@@ -325,23 +1705,44 @@
             const dateStart = filterDateStart.value;
             const dateEnd = filterDateEnd.value;
             
-            // Get selected platforms
             const selectedPlatforms = Array.from(document.querySelectorAll('.platform-chk:checked')).map(cb => cb.value);
+            const selectedSources = Array.from(document.querySelectorAll('.source-chk:checked')).map(cb => cb.value);
+            const minSourceCount = parseInt(minSourcesInput.value) || 1;
 
             const filtered = db.filter(g => {
+                const combined = g.sources.combined || {};
+                const sourceKeys = Object.keys(g.sources).filter(k => k !== 'combined');
+
                 // 1. Text Search
                 if (!g.display_name.toLowerCase().includes(term)) return false;
 
-                const combined = g.sources.combined || {};
-                
-                // 2. Platform Filter (OR logic: if ANY selected platform matches)
+                // 2. Platform Filter (NORMALIZED)
                 if (selectedPlatforms.length > 0) {
-                    const gPlatforms = combined.platforms || [];
-                    const hasMatch = selectedPlatforms.some(sp => gPlatforms.includes(sp));
+                    let gameRawPlatforms = [];
+                    if (combined.platforms) {
+                        gameRawPlatforms = combined.platforms;
+                    } else {
+                        Object.values(g.sources).forEach(s => {
+                            if(s.platforms) gameRawPlatforms.push(...s.platforms);
+                            if(s.platform) gameRawPlatforms.push(s.platform);
+                        });
+                    }
+
+                    const gameNormPlatforms = gameRawPlatforms.map(p => normalizePlatform(p));
+                    const hasMatch = selectedPlatforms.some(sp => gameNormPlatforms.includes(sp));
                     if (!hasMatch) return false;
                 }
 
-                // 3. Date Filter
+                // 3. Source Filter
+                if (selectedSources.length > 0) {
+                    const hasSourceMatch = selectedSources.some(src => g.sources.hasOwnProperty(src));
+                    if (!hasSourceMatch) return false;
+                }
+
+                // 4. Min Source Count
+                if (sourceKeys.length < minSourceCount) return false;
+
+                // 5. Date Filter
                 if (dateStart || dateEnd) {
                     const gDate = combined.basic_info ? combined.basic_info.release_date : null;
                     if (!gDate) return false; 
@@ -353,15 +1754,37 @@
                 return true;
             });
 
-            // Update UI count
-            resultsCountEl.textContent = `Showing ${filtered.length} of ${db.length} games`;
+            // Store filtered results for export
+            currentFilteredGames = filtered;
+
+            const countText = filtered.length === db.length ? 'all' : filtered.length;
+            resultsCountEl.innerHTML = `
+                <div class="results-info">
+                    <span>📋</span>
+                    <span>Showing <span class="result-number">${countText}</span> of ${db.length} games</span>
+                </div>
+                <button class="export-btn" onclick="exportFilteredGames()">
+                    <span>💾</span>
+                    <span>Export</span>
+                </button>
+            `;
             renderGameList(filtered);
         }
 
-        // Attach Listeners
+        // Event Listeners
         searchInput.addEventListener('input', filterGames);
-        filterDateStart.addEventListener('change', filterGames);
-        filterDateEnd.addEventListener('change', filterGames);
+        filterDateStart.addEventListener('change', () => {
+            filterGames();
+            updateActiveFiltersCount();
+        });
+        filterDateEnd.addEventListener('change', () => {
+            filterGames();
+            updateActiveFiltersCount();
+        });
+        minSourcesInput.addEventListener('input', () => {
+            filterGames();
+            updateActiveFiltersCount();
+        });
 
         // --- RENDERING LOGIC ---
 
@@ -369,20 +1792,21 @@
             gameListEl.innerHTML = '';
             
             if(games.length === 0) {
-                gameListEl.innerHTML = '<div style="padding:20px; text-align:center; color:gray">No games found</div>';
+                gameListEl.innerHTML = '<div style="padding:40px; text-align:center; color:var(--text-muted)">No games found</div>';
                 return;
             }
 
             games.forEach(game => {
                 const hasCombined = game.sources && game.sources.combined;
+                const sourceCount = Object.keys(game.sources).filter(k=>k!=='combined').length;
                 
                 const div = document.createElement('div');
                 div.className = 'game-item';
                 div.innerHTML = `
-                    <div>${game.display_name}</div>
-                    <div style="margin-top:4px">
-                        ${hasCombined ? '<span class="source-badge" style="background:var(--success); color:black">Merged</span>' : ''}
-                        ${Object.keys(game.sources).filter(k=>k!=='combined').length} sources
+                    <div class="game-title">${game.display_name}</div>
+                    <div class="game-meta">
+                        ${hasCombined ? '<span class="source-badge">Merged</span>' : ''}
+                        <span>${sourceCount} source${sourceCount !== 1 ? 's' : ''}</span>
                     </div>
                 `;
                 div.onclick = () => loadGame(game, div);
@@ -408,14 +1832,38 @@
             tabsEl.innerHTML = '';
             panelsContainer.innerHTML = '';
 
+            // 1. Visual Overview
             createTab("Visual Overview", true);
             createVisualPanel(game.sources.combined, true);
 
-            const sources = Object.keys(game.sources).sort();
-            sources.forEach(sourceKey => {
-                let displayName = sourceKey.toUpperCase();
-                if(sourceKey === 'combined') displayName = "COMBINED (JSON)";
-                
+            // 2. COMBINED JSON (RAW)
+            if (game.sources && game.sources.combined) {
+                createTab("COMBINED", false);
+                createRawPanel("COMBINED", game.sources.combined);
+            }
+
+            // 3. Individual Sources
+            const sourceKeys = Object.keys(game.sources)
+                .filter(k => k !== 'combined')
+                .sort();
+
+            const getCleanLabel = (rawName) => {
+                let s = rawName;
+                s = s.replace(/[-_\s]+\d+$/, '');
+                return s.toUpperCase();
+            };
+
+            const labelCounts = {};
+
+            sourceKeys.forEach(sourceKey => {
+                const cleanName = getCleanLabel(sourceKey);
+                labelCounts[cleanName] = (labelCounts[cleanName] || 0) + 1;
+
+                const displayName =
+                    labelCounts[cleanName] > 1
+                        ? `${cleanName} (${labelCounts[cleanName]})`
+                        : cleanName;
+
                 createTab(displayName, false);
                 createRawPanel(displayName, game.sources[sourceKey]);
             });
@@ -453,22 +1901,21 @@
             const classif = data.classification || {};
             const comps = data.companies || {};
             
-            const getVal = (v, suffix='') => v ? `${v}${suffix}` : '<span style="color:#555">-</span>';
+            const getVal = (v, suffix='') => v ? `${v}${suffix}` : '<span style="color:var(--text-muted)">-</span>';
             const dateStr = info.release_date || "Unknown Date";
 
             let html = `
                 <div class="dashboard-grid">
                     <div class="dashboard-left">
                         <div class="poster-card">
-                            <img src="${media.poster || media.box_art || 'https://via.placeholder.com/300x450?text=No+Image'}" 
-                                 onerror="this.src='https://via.placeholder.com/300x450?text=Image+Error'">
+                            <img src="${media.poster || media.box_art || 'assests/no-poster.PNG'}">
                         </div>
                         <table class="data-table">
                             <tr><th>Released</th><td>${dateStr}</td></tr>
                             <tr><th>Rating</th><td>${getVal(classif.content_rating)}</td></tr>
                         </table>
                         <div>
-                            <div class="section-title">External Links</div>
+                            <div class="section-title">🔗 External Links</div>
                             <div class="pill-container">
                                 ${ info.website ? `<span class="pill"><a href="${info.website}" target="_blank">Official Site</a></span>` : '' }
                                 ${ info.ids?.imdb ? `<span class="pill"><a href="https://www.imdb.com/title/${info.ids.imdb}" target="_blank">IMDb</a></span>` : '' }
@@ -477,21 +1924,21 @@
                             </div>
                         </div>
                         <div style="margin-top:20px;">
-                            <div class="section-title">Developers</div>
+                            <div class="section-title">👨‍💻 Developers</div>
                             <div class="pill-container">
-                                ${ (comps.developers || []).map(d => `<span class="pill">${d}</span>`).join('') || '<span style="color:#666">N/A</span>' }
+                                ${ (comps.developers || []).map(d => `<span class="pill">${d}</span>`).join('') || '<span style="color:var(--text-muted)">N/A</span>' }
                             </div>
                         </div>
                          <div>
-                            <div class="section-title">Publishers</div>
+                            <div class="section-title">🏢 Publishers</div>
                             <div class="pill-container">
-                                ${ (comps.publishers || []).map(d => `<span class="pill">${d}</span>`).join('') || '<span style="color:#666">N/A</span>' }
+                                ${ (comps.publishers || []).map(d => `<span class="pill">${d}</span>`).join('') || '<span style="color:var(--text-muted)">N/A</span>' }
                             </div>
                         </div>
                     </div>
                     <div class="dashboard-right">
                         <div style="margin-bottom: 25px;">
-                            <p style="font-size: 1.1rem; line-height: 1.6; color: #ddd; margin-top:0;">
+                            <p style="font-size: 15px; line-height: 1.7; color: var(--text-secondary); margin-top:0;">
                                 ${ (info.description || 'No description available.').replace(/\n/g, '<br>') }
                             </p>
                         </div>
@@ -514,16 +1961,16 @@
                             </div>
                         </div>
                         <div>
-                            <div class="section-title">Genres & Tags</div>
+                            <div class="section-title">🎯 Genres & Tags</div>
                             <div class="pill-container">
                                 ${ (classif.genres || []).map(g => `<span class="pill genre">${g}</span>`).join('') }
                                 ${ (classif.tags || []).slice(0, 15).map(t => `<span class="pill">${t}</span>`).join('') }
                             </div>
                         </div>
                         <div>
-                            <div class="section-title">Platforms</div>
+                            <div class="section-title">🎮 Platforms</div>
                             <div class="pill-container">
-                                ${ (data.platforms || []).map(p => `<span class="pill platform">${p}</span>`).join('') }
+                                ${ (data.platforms || []).map(p => `<span class="pill platform">${normalizePlatform(p)}</span>`).join('') }
                             </div>
                         </div>
                         ${ renderCredits(data.credits) }
@@ -563,7 +2010,7 @@
                 rosterHtml += `<div class="credit-item"><span class="credit-role">${person.role}</span><span class="credit-name">${person.name}</span></div>`;
             });
 
-            let finalHtml = `<div style="margin-top:25px"><div class="section-title">Credits & Crew</div>`;
+            let finalHtml = `<div style="margin-top:25px"><div class="section-title">👥 Credits & Crew</div>`;
             if (hasBfi) finalHtml += `<div class="bfi-grid">${bfiHtml}</div>`;
             if (roster.length > 0) {
                 const uid = "credits-" + Math.random().toString(36).substr(2, 9);
@@ -588,7 +2035,7 @@
 
         function renderGallery(images) {
             if (!images || images.length === 0) return '';
-            let html = `<div style="margin-top:30px"><div class="section-title">Gallery</div><div class="media-grid">`;
+            let html = `<div style="margin-top:30px"><div class="section-title">🖼️ Gallery</div><div class="media-grid">`;
             images.slice(0, 8).forEach(img => html += `<div class="media-item"><img src="${img}" loading="lazy" onclick="window.open('${img}', '_blank')"></div>`);
             html += `</div></div>`;
             return html;
@@ -596,10 +2043,22 @@
 
         function renderVideos(videos) {
             if (!videos || videos.length === 0) return '';
-            let html = `<div style="margin-top:20px"><div class="section-title">Videos</div><div style="display:flex; flex-direction:column; gap:10px;">`;
-            videos.forEach(v => html += `<a href="${v.url}" target="_blank" style="color:var(--accent); text-decoration:none;">▶ ${v.name || 'Watch Trailer'}</a>`);
+            let html = `<div style="margin-top:20px"><div class="section-title">🎬 Videos</div><div style="display:flex; flex-direction:column; gap:10px;">`;
+            videos.forEach(v => html += `<a href="${v.url}" target="_blank" style="color:var(--accent-primary); text-decoration:none; transition: color 0.2s;" onmouseover="this.style.color='var(--accent-secondary)'" onmouseout="this.style.color='var(--accent-primary)'">▶ ${v.name || 'Watch Trailer'}</a>`);
             html += `</div></div>`;
             return html;
+        }
+
+        function safeStringify(obj) {
+            const seen = new WeakSet();
+            return JSON.stringify(obj, (key, value) => {
+                if (typeof value === 'bigint') return value.toString();
+                if (typeof value === 'object' && value !== null) {
+                    if (seen.has(value)) return '[Circular]';
+                    seen.add(value);
+                }
+                return value;
+            }, 4);
         }
 
         function createRawPanel(name, data) {
@@ -611,15 +2070,20 @@
             toolbar.className = 'copy-toolbar';
             const btn = document.createElement('button');
             btn.className = 'copy-btn';
-            btn.textContent = 'Copy JSON';
-            const jsonString = JSON.stringify(data, null, 4);
-            
+            btn.textContent = '📋 Copy JSON';
+            let jsonString;
+            try {
+                jsonString = safeStringify(data);
+            } catch (e) {
+                jsonString = `<< Failed to serialize JSON >>\n${e.message}`;
+            }
+                        
             btn.onclick = () => {
                 navigator.clipboard.writeText(jsonString).then(() => {
-                    btn.textContent = 'Copied!';
+                    btn.textContent = '✓ Copied!';
                     btn.style.background = 'var(--success)';
-                    btn.style.color = '#000';
-                    setTimeout(() => { btn.textContent = 'Copy JSON'; btn.style.background = ''; btn.style.color = ''; }, 2000);
+                    btn.style.color = '#fff';
+                    setTimeout(() => { btn.textContent = '📋 Copy JSON'; btn.style.background = ''; btn.style.color = ''; }, 2000);
                 });
             };
             
